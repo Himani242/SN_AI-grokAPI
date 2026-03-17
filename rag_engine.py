@@ -26,7 +26,7 @@ retriever = vector_db.as_retriever(search_kwargs={"k": 3})
 
 # Groq model
 llm = ChatGroq(
-    model="llama3-70b-8192",
+    model="llama-3.3-70b-versatile",
     api_key=GROQ_API_KEY,
     temperature=0.2
 )
