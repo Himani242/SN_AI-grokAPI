@@ -41,7 +41,7 @@ def ask_ai(question):
         if not docs:
             return "No relevant information found in documents."
 
-        context = "\n\n".join([doc.page_content[:400] for doc in docs[:3]])
+        context = "\n\n".join([doc.page_content for doc in docs[:3]])
 
         prompt = f"""
 You are an assistant for Smart Node company.
