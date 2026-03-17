@@ -6,7 +6,6 @@ chromadb
 sentence-transformers
 pypdf
 docx2txt
-langchain-google-genai
-google-api-python-client
-google-auth
+langchain-groq
+python-dotenv
 gdown
