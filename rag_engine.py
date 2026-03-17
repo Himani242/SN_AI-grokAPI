@@ -1,10 +1,14 @@
 import os
+from dotenv import load_dotenv
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_groq import ChatGroq
+
+# load .env file
+load_dotenv()
 
 # load API key
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 # embedding model
 embedding_model = HuggingFaceEmbeddings(
@@ -18,12 +22,12 @@ vector_db = Chroma(
     collection_name="smartnode_docs"
 )
 
-retriever = vector_db.as_retriever(search_kwargs={"k":3})
+retriever = vector_db.as_retriever(search_kwargs={"k": 3})
 
-# Gemini model
-llm = ChatGoogleGenerativeAI(
-    model="gemini-2.0-flash",
-    google_api_key=GOOGLE_API_KEY,
+# Groq model
+llm = ChatGroq(
+    model="llama3-8b-8192",
+    api_key=GROQ_API_KEY,
     temperature=0.2
 )
 
@@ -37,7 +41,6 @@ def ask_ai(question):
         if not docs:
             return "No relevant information found in documents."
 
-        # limit context size to avoid Gemini errors
         context = "\n\n".join([doc.page_content[:400] for doc in docs[:3]])
 
         prompt = f"""
@@ -57,6 +60,4 @@ Question:
         return response.content
 
     except Exception as e:
-
-        # show real error in UI
         return f"ERROR: {str(e)}"
