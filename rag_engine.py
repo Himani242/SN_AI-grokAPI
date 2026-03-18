@@ -22,7 +22,7 @@ vector_db = Chroma(
     collection_name="smartnode_docs"
 )
 
-retriever = vector_db.as_retriever(search_kwargs={"k": 3})
+retriever = vector_db.as_retriever(search_kwargs={"k": 10})
 
 # Groq model
 llm = ChatGroq(
@@ -41,12 +41,25 @@ def ask_ai(question):
         if not docs:
             return "No relevant information found in documents."
 
-        context = "\n\n".join([doc.page_content for doc in docs[:3]])
+        # show which source each chunk came from
+        context = ""
+        for doc in docs:
+            source = doc.metadata.get("source", "Unknown")
+            context += f"\n[Source: {source}]\n{doc.page_content}\n"
 
         prompt = f"""
-You are an assistant for Smart Node company.
+You are a strict assistant for Smart Node company.
 
-Answer the question using only the context below.
+Your job is to answer questions ONLY using the context provided below.
+
+STRICT RULES:
+- If the answer is found in the context, answer clearly and accurately.
+- If the answer is NOT in the context, reply exactly: "I don't have information about this in the provided documents."
+- Do NOT use your own knowledge.
+- Do NOT guess or make up answers.
+- Do NOT answer from outside the context.
+- For comparison questions, carefully read data from ALL sources before answering.
+- Never say a product does not have something unless the context clearly confirms it.
 
 Context:
 {context}
@@ -56,7 +69,6 @@ Question:
 """
 
         response = llm.invoke(prompt)
-
         return response.content
 
     except Exception as e:
