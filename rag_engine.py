@@ -1,14 +1,11 @@
 import os
-from dotenv import load_dotenv
+import streamlit as st
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_groq import ChatGroq
 
-# load .env file
-load_dotenv()
-
-# load API key
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+# load API key from Streamlit secrets
+GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 
 # embedding model
 embedding_model = HuggingFaceEmbeddings(
@@ -22,13 +19,17 @@ vector_db = Chroma(
     collection_name="smartnode_docs"
 )
 
-retriever = vector_db.as_retriever(search_kwargs={"k": 15})
+# fetch 15 chunks for better comparison queries
+retriever = vector_db.as_retriever(
+    search_type="similarity",
+    search_kwargs={"k": 15}
+)
 
 # Groq model
 llm = ChatGroq(
     model="llama-3.3-70b-versatile",
     api_key=GROQ_API_KEY,
-    temperature=0.2
+    temperature=0.1
 )
 
 
@@ -39,15 +40,14 @@ def ask_ai(question):
         docs = retriever.invoke(question)
 
         if not docs:
-            return "No relevant information found in documents."
+            return "I could not find any relevant information in the documents."
 
-        # show which source each chunk came from
         context = ""
         for doc in docs:
             source = doc.metadata.get("source", "Unknown")
             context += f"\n[Source: {source}]\n{doc.page_content}\n"
 
-prompt = f"""
+        prompt = f"""
 You are a strict assistant for Smart Node company.
 
 Your job is to answer questions ONLY using the context provided below.
@@ -58,15 +58,16 @@ STRICT RULES:
 - Do NOT use your own knowledge.
 - Do NOT guess or make up answers.
 - Do NOT answer from outside the context.
-- For comparison questions, compare point by point in detail, covering ALL of these aspects:
+- For comparison questions, compare point by point in detail covering ALL of these aspects:
   1. Product Overview and Control Method
   2. Supported Model Numbers
-  3. All Features
-  4. Technical Specifications
-  5. Dimensions
-  6. Safety and Warnings
+  3. Load Terminal Configuration for each model
+  4. All Features
+  5. Technical Specifications
+  6. Dimensions
+  7. Safety and Warnings
 - Never say a product does not have something unless the context clearly confirms it.
-- Always give specific model numbers, values, and details — never give vague general answers.
+- Always give specific model numbers, values, and details - never give vague general answers.
 
 Context:
 {context}
