@@ -22,7 +22,7 @@ vector_db = Chroma(
     collection_name="smartnode_docs"
 )
 
-retriever = vector_db.as_retriever(search_kwargs={"k": 10})
+retriever = vector_db.as_retriever(search_kwargs={"k": 15})
 
 # Groq model
 llm = ChatGroq(
@@ -47,7 +47,7 @@ def ask_ai(question):
             source = doc.metadata.get("source", "Unknown")
             context += f"\n[Source: {source}]\n{doc.page_content}\n"
 
-        prompt = f"""
+prompt = f"""
 You are a strict assistant for Smart Node company.
 
 Your job is to answer questions ONLY using the context provided below.
@@ -58,14 +58,23 @@ STRICT RULES:
 - Do NOT use your own knowledge.
 - Do NOT guess or make up answers.
 - Do NOT answer from outside the context.
-- For comparison questions, carefully read data from ALL sources before answering.
+- For comparison questions, compare point by point in detail, covering ALL of these aspects:
+  1. Product Overview and Control Method
+  2. Supported Model Numbers
+  3. All Features
+  4. Technical Specifications
+  5. Dimensions
+  6. Safety and Warnings
 - Never say a product does not have something unless the context clearly confirms it.
+- Always give specific model numbers, values, and details — never give vague general answers.
 
 Context:
 {context}
 
 Question:
 {question}
+
+Answer:
 """
 
         response = llm.invoke(prompt)
