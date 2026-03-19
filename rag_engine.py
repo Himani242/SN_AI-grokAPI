@@ -21,13 +21,21 @@ vector_db = Chroma(
 
 # fetch 20 chunks for better comparison queries
 retriever = vector_db.as_retriever(
-    search_type="mmr",
-    search_kwargs={
-        "k": 20,
-        "fetch_k": 50,
-        "lambda_mult": 0.7
-    }
+    search_type="similarity",
+    search_kwargs={"k": 20}
 )
+
+# fetch 20 chunks for better comparison queries
+#retriever = vector_db.as_retriever(
+#    search_type="mmr",
+#    search_kwargs={
+#       "k": 20,
+#        "fetch_k": 50,
+#        "lambda_mult": 0.7
+#    }
+#)
+
+
 
 # Groq model
 llm = ChatGroq(
